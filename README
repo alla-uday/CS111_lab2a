@@ -1,0 +1,132 @@
+CS111 - Project 2A: Atomic Operations	Uday Shankar Alla    404428077
+
+The following README file contains information about each of the following
+submissions:
+1)lab2a.c
+2)Makefile
+3)graphs
+4)Analysis
+=========================================================================
+lab2a.c
+=========================================================================
+If no parameters are passed sets default threads and iterations to 1.
+If count does not equal to 0 then everything is echoed to stderr with an
+exit cod of 1.
+if count equals 0 then everything is outputted to STDOUT with an exit
+code of 0;
+
+=========================================================================
+Makefile
+=========================================================================
+working targets
+default: build the executable
+clean: remove all the intermediary files created when building the executable
+dist: tarring the respective contents.
+=========================================================================
+Graphs
+=========================================================================
+1)costperop.png
+This graph illustrates the cost per operation (non-yield) as a function of the
+number of iterations, with a single thread. We can observe from the graph that
+as the number of iterations get larger and larger the cost per operation
+subsequently decreases. This can be due to the fact that the overheads get finely
+divided among operations.
+
+2)synchonizations.png
+Using a large enough number of iterations, the average time per operation
+(non-yield) for a range of threads values was noted. I then graphed the performance
+(time per operation) of all four versions
+(unprotected, mutex, spin-lock, compare-and-swap) vs the number of threads.
+Analyzing the graph spin-locks are the slowest while mutex and CAS are nearly the same.
+
+==========================================================================
+Analysis
+==========================================================================
+
+I restricted the number of threads to 2, and I found that to consistently get
+erroneous values for the counter's final value/result it took about 1600
+iterations. A sample run:
+
+[udayshan@lnxsrv09 ~/Desktop/CS111/lab2]$ ./lab2a --iterations=1600 --threads=2
+2 threads x 1600 iterations x (add + subtract) = 6400 operations
+ERROR: final count = -160
+elapsed time: 335323ns
+per operation: 52ns
+
+I then restricted the number of iterations to 10 and I found that to
+consistently get erroneous values for the counter's final value/result it
+took about 150 threads.
+
+QUESTION 2A.1A:
+Why does it take this many threads or iterations to result in failure?
+A) It takes a large number of iterations to result in failure because as
+   there are more iterations each individual thread is more likely to last
+   longer. This consequently raises the chances for threads to parallely
+   execute and interfere resulting in a race condition. As the threads are
+   created one after another, large number of iterations ensure that the
+   first thread does not complete before the second one is created.
+   If the first thread were to complete before the second one was created
+   it would eliminate chances for parallelism and race condition.
+   Similarly, Large number of threads result in failure as more the number of
+   threads more likely for threads to interfere resulting in a race condition.
+
+QUESTION 2A.1B:
+Why does a significantly smaller number of iterations so seldom fail?
+A)When there is a smaller number of iteration, the thread which was
+  created earlier completes the task at hand before the next thread is
+  created. Therefore there isn't overlapping and interfering of threads which
+  drastically decreases chances of race conditions to rise.
+
+QUESTION 2A.2A:
+Why does the average cost per operation drop with increasing iterations?
+A)The average cost per operation drops with increasing iterations as the
+  execution time incorporates overheads, such as declarations, creating
+  and joining of threads. When the number of iterations is large the overhead
+  is very finely divided among the many operations unlike when there is a
+  small number of iterations in which the large chunks of the overhead is
+  divided among the few operations.
+
+QUESTION 2A.2B:
+How do we know what the “correct” cost is?
+A)We can obtain the "correct" cost as we can obtain the time per operation
+  for a very large number of iterations and threads. We know that this is
+  the correct cost as the time per operation for a large number of iterations
+  and threads eventually has to reach a limit, when the overhead is divided
+  very finely among each of the operations.
+
+QUESTION 2A.2C:
+Why are the --yield runs so much slower?  Where is the extra time going?
+A)When the thread yields the current thread gives up control and resources
+  to another thread. Therefore context switches occur and this frequent
+  switching adds to the extra execution time making the --yield runs much
+  slower.
+
+QUESTION 2A.2D:
+Can we get valid timings if we are using --yield?  How, or why not?
+A)We can get valid timings even if we use --yield option. This can be done by
+  computing the time it takes for all the context switches and subtracting
+  that from the final time.
+
+QUESTION 2A.3A:
+Why do all of the options perform similarly for low numbers of threads?
+A) For a low number of threads the conflict/competition for accessing the
+   shared resource(lock) is very less. Therefore all of the three
+   synchronizations don't influence the time characteristic of the program
+   to a great degree resulting in a similar performance.
+
+QUESTION 2A.3B:
+Why do the three protected operations slow down as the number of threads rises?
+A) When the number of threads rises, the number of threads trying to access
+   a critical section also increases  and therefore there is great need for
+   synchronisation. This increases the demand for locks and hence the
+   performance of each of the three synchronizations becomes more visible as
+   thread number increases.
+
+QUESTION 2A.3C:
+Why are spin-locks so expensive for large numbers of threads?
+A)spin-locks are very expensive for large number of threads as in this type
+  of synchronization even when the threads are waiting they are taking up
+  system resources(spinning in a while loop). This "spinning" of large
+  number of threads increases execution time. pthread_mutex on the other
+  hand isnt as expensive as it puts the waiting threads to sleep until
+  they are granted the lock. 
